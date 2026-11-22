@@ -108,6 +108,17 @@ button small{font-family:"Gowun Dodum",sans-serif;font-size:13px;opacity:.85;mar
 .pc small{color:var(--muted);font-size:12px}
 .pc.now{border-color:var(--accent)}
 .panel .close{width:100%}
+.qq{font-family:"Jua",sans-serif;font-size:20px;margin:6px 0 12px;line-height:1.4}
+.qopts{display:grid;gap:8px;margin-bottom:12px}
+.qopts button{font-size:17px;text-align:left;padding:10px 12px}
+.qopts button.ok{background:var(--good);border-color:var(--good);color:#10301e}
+.qopts button.no{background:var(--bad);border-color:var(--bad);color:#3a1010}
+.qres{background:var(--bubble);border:2px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:12px;font-size:15px}
+.qgo{display:grid;gap:8px;margin-bottom:10px}
+.mcard{background:var(--card);border:2px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:10px;font-size:15px}
+.mcard b{font-family:"Jua",sans-serif;font-weight:400}
+.paw{display:inline}
+@media (max-width:400px){.paw{display:none}.ib{width:34px;height:34px;font-size:16px}.topr{gap:4px}}
 </style>
 </head>
 <body>
@@ -140,7 +151,7 @@ button small{font-family:"Gowun Dodum",sans-serif;font-size:13px;opacity:.85;mar
   </div>
 </div></div>
 <div class="wrap">
-  <div class="top"><h1>동물농장 🐾</h1><div class="topr"><button class="ib" id="bagb" aria-label="가방">🎒</button><button class="ib" id="dexb" aria-label="도감">📖</button><div class="coin" id="coin"></div></div></div>
+  <div class="top"><h1>동물농장 <span class="paw">🐾</span></h1><div class="topr"><button class="ib" id="bagb" aria-label="가방">🎒</button><button class="ib" id="dexb" aria-label="도감">📖</button><button class="ib" id="misb" aria-label="미션">🎯</button><div class="coin" id="coin"></div></div></div>
   <div class="tabs" id="tabs"></div>
   <div class="stage" id="stage">
     <div class="bubble" id="say"></div>
@@ -179,7 +190,7 @@ button small{font-family:"Gowun Dodum",sans-serif;font-size:13px;opacity:.85;mar
   var PLACES=[["home","집"],["bath","목욕탕"],["hospital","병원"],["play","놀이방"],["shop","사료집"]];
   var STAGE=["아기","어린이","청소년","어른"];
   var INTRO={home:"집이에요. 밥 주세요!",bath:"목욕탕이에요. 뽀득뽀득 씻을까요?",hospital:"병원이에요. 아프면 진찰받아요.",play:"놀이방이에요. 장난감으로 놀아요!",shop:"사료집이에요. 사료를 살 수 있어요."};
-  var DEF={coins:5000,level:1,food:0,mood:70,health:90,clean:80,stock:3,toys:{},day:1,dayStart:0,pet:"kong",started:false,gold:0,dex:{},place:"home",name:"콩이",say:"안녕! 나는 콩이야. 밥 주세요!"};
+  var DEF={coins:5000,level:1,food:0,mood:70,health:90,clean:80,stock:3,toys:{},day:1,dayStart:0,pet:"kong",started:false,gold:0,dex:{},weekStart:0,qday:0,qn:0,qseen:[],place:"home",name:"콩이",say:"안녕! 나는 콩이야. 밥 주세요!"};
   var S=load(), sleeping=false;
   function load(){try{var r=localStorage.getItem(KEY);if(r){var o=JSON.parse(r);if(o.started===undefined)o.started=true;var m=Object.assign({},DEF,o);if(!m.dex||typeof m.dex!=="object")m.dex={};if(m.started&&m.pet)m.dex[m.pet]=1;return m;}}catch(e){}return JSON.parse(JSON.stringify(DEF));}
   function save(){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}
@@ -252,7 +263,7 @@ button small{font-family:"Gowun Dodum",sans-serif;font-size:13px;opacity:.85;mar
     },2700);
   };
   el("go4").onclick=function(){
-    S.pet=newPet;S.dex[newPet]=1;S.started=true;S.dayStart=Date.now();S.say="안녕! 나는 "+S.name+"이야. 밥 주세요!";
+    S.pet=newPet;S.dex[newPet]=1;S.started=true;S.dayStart=Date.now();S.weekStart=Date.now();S.say="안녕! 나는 "+S.name+"이야. 밥 주세요!";
     sleeping=false;render();showRemain();
   };
   function render(){
@@ -350,6 +361,43 @@ button small{font-family:"Gowun Dodum",sans-serif;font-size:13px;opacity:.85;mar
     h+='</div>';
     openPanel("펫 도감","만난 친구 "+n+"/"+PETORDER.length,h);
   };
+  var QUIZ=[["다음 중 포유류가 아닌 동물은?", ["펭귄", "고래", "박쥐", "돌고래"], "펭귄은 새(조류)예요. 알을 낳아요."], ["강아지의 정상 체온은 사람보다 어떨까요?", ["조금 더 높아요", "조금 더 낮아요", "똑같아요", "계절마다 반대예요"], "강아지의 체온은 약 38~39℃로 사람(약 36.5℃)보다 높아요."], ["문어의 심장은 몇 개일까요?", ["3개", "1개", "2개", "8개"], "문어는 심장이 3개예요. 2개는 아가미로, 1개는 온몸으로 피를 보내요."], ["기린의 목뼈는 몇 개일까요?", ["7개", "3개", "15개", "30개"], "기린의 목뼈는 사람과 같은 7개예요. 하나하나가 아주 길어요."], ["낙타의 혹에 주로 저장되어 있는 것은?", ["지방", "물", "공기", "모래"], "낙타의 혹에는 지방이 저장돼 있어요. 에너지로 쓰여요."], ["다음 중 알을 낳는 포유류는?", ["오리너구리", "캥거루", "고슴도치", "박쥐"], "오리너구리는 알을 낳는 몇 안 되는 포유류예요."], ["꿀벌이 꿀이 있는 곳을 동료에게 알리는 방법은?", ["8자 춤을 춰요", "큰 소리로 울어요", "냄새만 풍겨요", "그림을 그려요"], "꿀벌은 8자 모양의 춤으로 꿀이 있는 방향과 거리를 알려줘요."], ["지구에서 가장 큰 동물은?", ["대왕고래(흰수염고래)", "코끼리", "기린", "상어"], "대왕고래는 지구에서 가장 큰 동물이에요."], ["코알라가 주로 먹는 잎은?", ["유칼립투스", "대나무", "상추", "솔잎"], "코알라는 유칼립투스 잎을 먹어요."], ["고양이는 하루에 보통 몇 시간쯤 잘까요?", ["12~16시간", "3~4시간", "6~7시간", "24시간"], "고양이는 하루의 반 이상을 자요. 보통 12~16시간 정도예요."], ["햄스터의 앞니는 어떻게 될까요?", ["평생 계속 자라요", "자라지 않아요", "한 번 빠지고 끝이에요", "어른이 되면 사라져요"], "햄스터의 앞니는 계속 자라서 딱딱한 것을 갉아 닳게 해요."], ["애벌레가 번데기를 거쳐 나비가 되는 것을 무엇이라고 할까요?", ["변태", "번식", "탈피", "동면"], "모습이 크게 바뀌는 것을 변태라고 해요."], ["1기압에서 물이 끓는 온도는?", ["100℃", "50℃", "0℃", "200℃"], "물은 1기압에서 100℃에서 끓어요."], ["태양계에서 가장 큰 행성은?", ["목성", "지구", "화성", "금성"], "목성이 태양계에서 가장 큰 행성이에요."], ["지구에서 가장 가까운 별은?", ["태양", "달", "북극성", "시리우스"], "태양도 별이에요. 지구에서 가장 가까운 별이에요."], ["식물이 광합성에 필요로 하는 기체는?", ["이산화탄소", "수소", "헬륨", "질소"], "식물은 빛과 물, 이산화탄소로 양분을 만들어요."], ["소리가 가장 빠르게 전달되는 것은?", ["쇠막대(고체)", "공기", "물", "진공"], "소리는 보통 기체보다 액체, 액체보다 고체에서 더 빨리 전달돼요. 진공에서는 전달되지 않아요."], ["어른의 뼈는 모두 몇 개일까요?", ["206개", "106개", "306개", "56개"], "어른의 뼈는 모두 206개예요."], ["무지개는 몇 가지 색으로 이야기할까요?", ["7가지", "3가지", "5가지", "10가지"], "흔히 빨주노초파남보 7가지 색이라고 해요."], ["달이 지구를 한 바퀴 도는 데 걸리는 시간은 약?", ["한 달", "하루", "일주일", "일 년"], "달은 약 27일 만에 지구를 한 바퀴 돌아요."], ["번개와 천둥 중 먼저 느껴지는 것은?", ["번개(빛)", "천둥(소리)", "똑같이 느껴요", "그때그때 달라요"], "빛이 소리보다 훨씬 빨라서 번개가 먼저 보이고 천둥이 나중에 들려요."], ["한글을 만든 임금님은?", ["세종대왕", "이순신", "광개토대왕", "태조 이성계"], "세종대왕이 훈민정음을 만들었어요."], ["한글날은 몇 월 며칠일까요?", ["10월 9일", "5월 5일", "3월 1일", "8월 15일"], "한글날은 10월 9일이에요."], ["남한에서 가장 높은 산은?", ["한라산", "지리산", "설악산", "북한산"], "제주도에 있는 한라산이 남한에서 가장 높아요."], ["설날에 먹는 대표적인 음식은?", ["떡국", "송편", "팥죽", "오곡밥"], "설날에는 떡국을 먹어요. 한 살 더 먹는다고 해요."], ["추석에 먹는 대표적인 음식은?", ["송편", "떡국", "부럼", "팥죽"], "추석에는 햇곡식으로 만든 송편을 먹어요."], ["태극기 가운데에 있는 동그란 무늬의 이름은?", ["태극", "팔괘", "건곤감리", "무궁화"], "태극기의 가운데 둥근 무늬를 태극이라고 해요."], ["우리나라에서 가장 큰 섬은?", ["제주도", "울릉도", "강화도", "거제도"], "제주도가 우리나라에서 가장 큰 섬이에요."], ["김치의 가장 대표적인 재료는?", ["배추", "감자", "양파", "고구마"], "배추김치가 가장 대표적이에요."], ["일 년은 몇 달일까요?", ["12달", "10달", "11달", "13달"], "일 년은 12달이에요."], ["1시간은 몇 분일까요?", ["60분", "30분", "100분", "24분"], "1시간은 60분이에요."], ["삼각형의 세 각을 모두 더하면 몇 도일까요?", ["180도", "90도", "360도", "270도"], "삼각형의 세 각의 합은 항상 180도예요."], ["올림픽 오륜기에는 고리가 몇 개 있을까요?", ["5개", "4개", "6개", "7개"], "오륜기에는 5개의 고리가 있어요."], ["빨강과 파랑을 섞으면 어떤 색이 될까요?", ["보라", "초록", "주황", "노랑"], "빨강과 파랑을 섞으면 보라색이 돼요."], ["세계에서 가장 큰 바다(대양)는?", ["태평양", "대서양", "인도양", "북극해"], "태평양이 가장 넓은 바다예요."], ["신호등에서 길을 건너도 되는 색은?", ["초록", "빨강", "노랑", "파랑"], "초록불일 때 건너요."], ["세계에서 가장 높은 산은?", ["에베레스트", "한라산", "후지산", "백두산"], "에베레스트산은 해발 약 8,849m예요."], ["1kg은 몇 g일까요?", ["1000g", "10g", "100g", "10000g"], "1kg은 1000g이에요."], ["피아노 건반은 모두 몇 개일까요?", ["88개", "66개", "100개", "52개"], "피아노는 흰건반과 검은건반을 합쳐 88개예요."], ["지구에서 낮과 밤이 생기는 까닭은?", ["지구가 스스로 돌기 때문이에요", "달이 지구를 돌기 때문이에요", "태양이 움직이기 때문이에요", "구름 때문이에요"], "지구가 하루에 한 바퀴씩 자전하기 때문에 낮과 밤이 생겨요."], ["물이 얼면 얼음이 돼요. 이때 물은 몇 ℃ 이하일까요?", ["0℃", "20℃", "50℃", "100℃"], "물은 0℃ 이하에서 얼어요."]];
+  var curQ=-1,curOpts=[];
+  function quizReset(){if(S.qday!==S.day){S.qday=S.day;S.qn=0;S.qseen=[];}}
+  function openMission(){
+    quizReset();
+    var m=Math.max(0,Math.ceil((S.weekStart+7*DAY-Date.now())/60000)),d=Math.floor(m/1440),hh=Math.floor((m%1440)/60);
+    var h='<div class="mcard"><b>주간 충전</b><br>7일마다 '+WEEKP+'코인이 들어와요.<br>다음 충전까지 '+d+'일 '+hh+'시간</div>';
+    h+='<div class="mcard"><b>상식 퀴즈</b><br>맞히면 '+QREW+'코인! 하루 '+QMAX+'문제까지 풀 수 있어요.<br>오늘 푼 문제 '+S.qn+'/'+QMAX+'</div>';
+    h+=S.qn>=QMAX?'<p class="sub">오늘은 다 풀었어요. 내일 또 도전해요!</p>':'<div class="qgo"><button class="main" data-q="start">문제 풀기</button></div>';
+    openPanel("미션","코인을 벌어 봐요",h);
+  }
+  function nextQuiz(){
+    quizReset();
+    var pool=[];QUIZ.forEach(function(q,i){if(S.qseen.indexOf(i)<0)pool.push(i);});
+    if(!pool.length||S.qn>=QMAX){openMission();return;}
+    curQ=pool[Math.floor(Math.random()*pool.length)];
+    var q=QUIZ[curQ];curOpts=q[1].map(function(t,i){return {t:t,ok:i===0};});
+    for(var i=curOpts.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),x=curOpts[i];curOpts[i]=curOpts[j];curOpts[j]=x;}
+    var h='<div class="qq">'+q[0]+'</div><div class="qopts">'+curOpts.map(function(o,i){return '<button data-q="a" data-i="'+i+'">'+o.t+'</button>';}).join("")+'</div>';
+    openPanel("상식 퀴즈","문제 "+(S.qn+1)+"/"+QMAX,h);
+  }
+  el("pbody").onclick=function(e){
+    var b=e.target.closest("button");if(!b||!b.dataset.q)return;
+    var a=b.dataset.q;
+    if(a==="start"||a==="next"){nextQuiz();return;}
+    if(a==="back"){openMission();return;}
+    if(a==="a"){
+      var i=+b.dataset.i,ok=curOpts[i].ok,q=QUIZ[curQ];
+      S.qseen.push(curQ);S.qn++;if(ok)S.coins+=QREW;
+      render();
+      var bs=el("pbody").querySelectorAll(".qopts button");
+      Array.prototype.forEach.call(bs,function(x,k){x.disabled=true;if(curOpts[k].ok)x.classList.add("ok");else if(k===i)x.classList.add("no");});
+      var more=S.qn<QMAX;
+      el("pbody").insertAdjacentHTML("beforeend",'<div class="qres"><b>'+(ok?'정답! +'+QREW+'코인':'아쉬워요!')+'</b><br>'+q[2]+'</div><div class="qgo">'+(more?'<button class="main" data-q="next">다음 문제</button>':'')+'<button data-q="back">미션으로 돌아가기</button></div>');
+    }
+  };
+  el("misb").onclick=openMission;
   function endDay(){
     var fed=S.food>=3;
     S.day++;S.food=0;S.clean=cl(S.clean-30);
@@ -361,12 +409,15 @@ button small{font-family:"Gowun Dodum",sans-serif;font-size:13px;opacity:.85;mar
     else{say("좋은 아침! "+S.day+"일째예요. 오늘도 밥 먹고 싶어요.");}
   }
   var DAY=86400000;
+  var WEEKP=1000,QREW=50,QMAX=5;
   function tick(){
-    var now=Date.now();
+    var now=Date.now(),ch=false;
     if(!S.started)return false;
-    if(!S.dayStart){S.dayStart=now;return false;}
+    if(!S.weekStart){S.weekStart=now;}
+    else if(now-S.weekStart>=7*DAY){S.coins+=WEEKP;S.weekStart=now;say("주간 충전! "+WEEKP+"코인이 들어왔어요.");ch=true;}
+    if(!S.dayStart){S.dayStart=now;return ch;}
     var n=Math.floor((now-S.dayStart)/DAY);
-    if(n<1)return false;
+    if(n<1)return ch;
     var k=Math.min(3,n);
     for(var i=0;i<k;i++)endDay();
     S.dayStart=n>3?now:S.dayStart+n*DAY;
